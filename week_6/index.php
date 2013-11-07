@@ -32,12 +32,14 @@ require_once("database.php");
 		$page = $page < 0 ? 0:$page;
 	}
 	$start = $page * $limit;
-  $pets = runQuery($db, "SELECT * FROM `pets` LIMIT $start,$limit;");
+    $pets = $db->query("SELECT * FROM `pets` LIMIT $start,$limit;");
+    $typePrep = $db->prepare("SELECT * FROM `types` WHERE `id` = :id");
+    $tempPrep = $db->prepare("SELECT * FROM `temperaments` WHERE `id` = :id");
+    $colorResult = $db->prepare("SELECT `color_id` FROM `pets_has_colors` WHERE `pet_id` = :petid");
+    $cresPrep = $db->prepare("SELECT `name` FROM `colors` WHERE `id` = :colorid");
   //counts total number of pets
-  $countRes = runQuery($db, "SELECT COUNT(`id`) AS `amount` FROM `pets`;");
-  $countObj = $countRes->fetch_object();
-  $count = $countObj->amount;
-  $totalPages = ceil($count/$limit);
+  $count = $db->query("SELECT COUNT(`id`) AS `amount` FROM `pets`;")->fetchObject();
+  $totalPages = ceil($count->amount/$limit);
   ?>
   <?php if($page > 0): ?>
   <a href="./?page=<?php echo $page; ?>">Prev</a>
@@ -45,23 +47,26 @@ require_once("database.php");
   <a href="./?page=<?php echo $page+2; ?>">Next</a>
   <?php
   endif;
-  while($pet = $pets->fetch_object())
+  foreach($pets as $pet)
   {
-  	$types = runQuery($db, "SELECT * FROM `types` WHERE `id` = $pet->type_id");
-  	$type = $types->fetch_object();
+    $pet = (Object) $pet;
+    $typePrep->execute(array(":id" => $pet->type_id));
+  	$type = $typePrep->fetchObject();
+    $tempPrep->execute(array(":id" => $pet->temperament_id));
+  	$temp = $tempPrep->fetchObject();
   	
-  	$temperamants = runQuery($db, "SELECT * FROM `temperaments` WHERE `id` = $pet->temperament_id");
-  	$temp = $temperamants->fetch_object();
   	
   	//to get the colors, we need to quantify the data down since it is
   	//a many-to-many relationship
   	$colors = array();
   	
-  	$colorResult = runQuery($db, "SELECT `color_id` FROM `pets_has_colors` WHERE `pet_id` = $pet->id");
-  	while($colorId = $colorResult->fetch_object())
+  	$colorResult->execute(array(":petid" => $pet->id));
+  	foreach($colorResult as $colorId)
   	{
-  		$cRes = runQuery($db, "SELECT `name` FROM `colors` WHERE `id` = $colorId->color_id");
-  		$color = $cRes->fetch_object();
+        $colorId = (Object) $colorId;
+        $cresPrep->execute(array(":colorid" => $colorId->color_id));
+  		$cRes = $cresPrep->fetchObject();
+  		$color = $cRes;
   		$colors[] = $color->name;
   	}
   	

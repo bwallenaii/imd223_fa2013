@@ -1,0 +1,51 @@
+@charset "utf-8";
+/* CSS Document */
+
+label{
+	display: block;
+}
+
+.error{
+	color: #ff0000;
+	border: solid #ff0000 3px;
+	background-color: #ffcccc;
+}
+
+.success{
+	color: #006600;
+	border: solid #006600 3px;
+	background-color: #ffffff;
+}
+
+.message{
+	padding: 7px;
+	margin: 10px;
+	opacity: 1;
+	position: relative;
+	overflow: hidden;
+	animation-duration: 2s;
+	animation-name: disappear;
+	animation-delay: 3s;
+	-webkit-animation-duration: 2s;
+	-webkit-animation-name: disappear;
+	-webkit-animation-delay: 3s;
+}
+
+@keyframes disappear{
+	100%{
+		border-width: 0;
+		padding: 0;
+		margin: 0;
+		height: 0;
+		opacity: 0;}
+}
+
+@-webkit-keyframes disappear{
+	100%{
+		border-width: 0;
+		padding: 0;
+		margin: 0;
+		height: 0;
+		opacity: 0;
+		-webkit-animation-play-state: paused;}
+}
